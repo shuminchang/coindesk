@@ -1,9 +1,12 @@
 package com.cathay.coindesk.service;
 
+import com.cathay.coindesk.model.CoindeskRecord;
 import com.cathay.coindesk.model.CoindeskTransformedDto;
+import com.cathay.coindesk.respository.CoindeskRecordRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -16,13 +19,15 @@ import java.util.List;
 @Service
 public class CoindeskService {
 
+    @Autowired
+    private CoindeskRecordRepository coindeskRecordRepository;
     private final RestTemplate restTemplate = new RestTemplate();
 
     public String fetchOriginalJson() {
         return restTemplate.getForObject("https://kengp3.github.io/blog/coindesk.json", String.class);
     }
 
-    public CoindeskTransformedDto getTransformedData() throws JsonProcessingException {
+    public CoindeskTransformedDto getTransformedDataAndSave() throws JsonProcessingException {
         String json = fetchOriginalJson();
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(json);
@@ -40,6 +45,15 @@ public class CoindeskService {
             String rate = String.valueOf(currency.path("rate"));
             String description = String.valueOf(currency.path("description"));
             BigDecimal rateFloat = currency.path("rate_float").decimalValue();
+
+            CoindeskRecord record = new CoindeskRecord();
+            record.setUpdateTime(formattedTime);
+            record.setCode(code);
+            record.setSymbol(symbol);
+            record.setRate(rate);
+            record.setDescription(description);
+            record.setRateFloat(rateFloat);
+            coindeskRecordRepository.save(record);
 
             CoindeskTransformedDto.CurrencyInfo info = new CoindeskTransformedDto.CurrencyInfo();
             info.setCode(code);

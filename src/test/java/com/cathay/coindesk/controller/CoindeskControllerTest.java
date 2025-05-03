@@ -32,7 +32,7 @@ public class CoindeskControllerTest {
 
     @Test
     public void testFetchTransformedCoindeskAPI() {
-        String url = "/api/coindesk/transformed";
+        String url = "/api/coindesk/transformed-and-save";
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
