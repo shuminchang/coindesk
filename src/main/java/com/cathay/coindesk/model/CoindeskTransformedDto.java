@@ -23,20 +23,20 @@ public class CoindeskTransformedDto {
         this.currencyList = currencyList;
     }
 
-    @Override
-    public String toString() {
-        return "CoindeskTransformedDto{" +
-                "updateTime='" + updateTime + '\'' +
-                ", currencyList=" + currencyList +
-                '}';
-    }
-
     public static class CurrencyInfo {
         private String code;
-        private String symbol;
-        private String rate;
-        private String description;
+
+        private String name;
+
         private BigDecimal rateFloat;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
 
         public String getCode() {
             return code;
@@ -44,30 +44,6 @@ public class CoindeskTransformedDto {
 
         public void setCode(String code) {
             this.code = code;
-        }
-
-        public String getSymbol() {
-            return symbol;
-        }
-
-        public void setSymbol(String symbol) {
-            this.symbol = symbol;
-        }
-
-        public String getRate() {
-            return rate;
-        }
-
-        public void setRate(String rate) {
-            this.rate = rate;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
         }
 
         public BigDecimal getRateFloat() {
@@ -78,15 +54,5 @@ public class CoindeskTransformedDto {
             this.rateFloat = rateFloat;
         }
 
-        @Override
-        public String toString() {
-            return "CurrencyInfo{" +
-                    "code='" + code + '\'' +
-                    ", symbol='" + symbol + '\'' +
-                    ", rate='" + rate + '\'' +
-                    ", description='" + description + '\'' +
-                    ", rateFloat=" + rateFloat +
-                    '}';
-        }
     }
 }

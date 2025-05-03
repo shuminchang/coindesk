@@ -1,22 +1,22 @@
 package com.cathay.coindesk.controller;
 
-import com.cathay.coindesk.model.CoindeskRecord;
-import com.cathay.coindesk.respository.CoindeskRecordRepository;
+import com.cathay.coindesk.model.Currency;
+import com.cathay.coindesk.respository.CurrencyRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
-
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import static org.hamcrest.Matchers.*;
 @SpringBootTest
 @AutoConfigureMockMvc
 public class CurrencyControllerTest {
@@ -25,82 +25,54 @@ public class CurrencyControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private CoindeskRecordRepository repository;
+    private CurrencyRepository currencyRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    private CoindeskRecord sampleRecord;
-
     @BeforeEach
     public void setup() {
-        repository.deleteAll();
-
-        sampleRecord = new CoindeskRecord();
-        sampleRecord.setCode("USD");
-        sampleRecord.setSymbol("$");
-        sampleRecord.setRate("57,000.00");
-        sampleRecord.setRateFloat(new BigDecimal("57000.00"));
-        sampleRecord.setDescription("United States Dollar");
-        sampleRecord.setUpdateTime("2024/09/02 12:00:00");
-        repository.save(sampleRecord);
+        currencyRepository.deleteAll();
+        currencyRepository.save(new Currency("USD", "美元"));
     }
 
     @Test
-    public void testGetAllRecords() throws Exception {
-        mockMvc.perform(get("/api/currency/"))
+    public void testGetAllCurrencies() throws Exception {
+        mockMvc.perform(get("/api/currencies"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].code").value("USD"));
+                .andExpect(jsonPath("$.size()", is(1)))
+                .andExpect(jsonPath("$[0].code", is("USD")))
+                .andExpect(jsonPath("$[0].name", is("美元")));
     }
 
     @Test
-    public void testGetRecordById() throws Exception {
-        Long id = sampleRecord.getId();
-
-        mockMvc.perform(get("/api/currency/{id}", id))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value("USD"));
-    }
-
-    @Test
-    public void testCreateRecord() throws Exception {
-        CoindeskRecord newRecord = new CoindeskRecord();
-        newRecord.setCode("EUR");
-        newRecord.setSymbol("€");
-        newRecord.setRate("52000.00");
-        newRecord.setRateFloat(new BigDecimal("52000.00"));
-        newRecord.setDescription("Euro");
-        newRecord.setUpdateTime("2024/09/02 13:00:00");
-
-        mockMvc.perform(post("/api/currency/")
+    public void testCreateCurrency() throws Exception {
+        Currency currency = new Currency("JPY", "日圓");
+        mockMvc.perform(post("/api/currencies")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newRecord)))
+                        .content(objectMapper.writeValueAsString(currency)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value("EUR"));
+                .andExpect(jsonPath("$.code", is("JPY")))
+                .andExpect(jsonPath("$.name", is("日圓")));
     }
 
     @Test
-    public void testUpdateRecord() throws Exception {
-        Long id = sampleRecord.getId();
-        sampleRecord.setDescription("Updated USD");
-
-        mockMvc.perform(put("/api/currency/{id}", id)
+    public void testUpdateCurrency() throws Exception {
+        Currency updated = new Currency("USD", "美金");
+        mockMvc.perform(put("/api/currencies/USD")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(sampleRecord)))
+                        .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.description").value("Updated USD"));
+                .andExpect(jsonPath("$.name", is("美金")));
     }
 
     @Test
-    public void testDeleteRecord() throws Exception {
-        Long id = sampleRecord.getId();
-
-        mockMvc.perform(delete("/api/currency/{id}", id))
+    public void testDeleteCurrency() throws Exception {
+        mockMvc.perform(delete("/api/currencies/USD"))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/currency/{id}", id))
-                .andExpect(status().isNotFound()); // <--- 修正這行
-
+        mockMvc.perform(get("/api/currencies/USD"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("null"));  // <-- 修正這一行
     }
 }

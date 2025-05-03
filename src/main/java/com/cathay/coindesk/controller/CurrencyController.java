@@ -1,44 +1,49 @@
 package com.cathay.coindesk.controller;
 
-import com.cathay.coindesk.model.CoindeskRecord;
+import com.cathay.coindesk.model.Currency;
 import com.cathay.coindesk.service.CurrencyService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/currency")
+@RequestMapping("/api/currencies")
 public class CurrencyController {
 
     @Autowired
     private CurrencyService currencyService;
 
-    @GetMapping("/")
-    public List<CoindeskRecord> getAllRecords() {
+    @GetMapping
+    public List<Currency> getAll() {
         return currencyService.getAllRecords();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CoindeskRecord> getRecordById(@PathVariable Long id) {
-        return currencyService.getRecordById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @PostMapping
+    public Currency create(@RequestBody Currency c) {
+        return currencyService.createRecord(c);
     }
 
-    @PostMapping("/")
-    public CoindeskRecord createRecord(@RequestBody CoindeskRecord record) {
-        return currencyService.createRecord(record);
+    @GetMapping("/{code}")
+    public Optional<Currency> getCurrencyById(@PathVariable String code) {
+        return currencyService.getRecordByCode(code);
     }
 
-    @PutMapping("/{id}")
-    public CoindeskRecord updateRecord(@PathVariable Long id, @RequestBody CoindeskRecord updatedCoindeskRecord) {
-        return currencyService.updateRecord(id, updatedCoindeskRecord);
+    @PutMapping("/{code}")
+    public Currency update(@PathVariable String code, @RequestBody Currency updated) {
+        Optional<Currency> c = currencyService.getRecordByCode(code);
+        if (c.isPresent()) {
+            Currency currency = c.get();
+            currency.setName(updated.getName());
+            return currencyService.updateRecord(code, currency);
+        } else {
+            throw new RuntimeException("Currency not found: " + code);
+        }
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteRecord(@PathVariable Long id) {
-        currencyService.deleteRecord(id);
+    @DeleteMapping("/{code}")
+    public void delete(@PathVariable String code) {
+        currencyService.deleteRecord(code);
     }
 }

@@ -20,8 +20,8 @@ public class CoindeskController {
         return coindeskService.fetchOriginalJson();
     }
 
-    @GetMapping("/transformed-and-save")
+    @GetMapping("/transformed")
     public CoindeskTransformedDto getAndSave() throws JsonProcessingException {
-        return coindeskService.getTransformedDataAndSave();
+        return coindeskService.getTransformedData();
     }
 }

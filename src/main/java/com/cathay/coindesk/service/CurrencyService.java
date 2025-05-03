@@ -1,10 +1,12 @@
 package com.cathay.coindesk.service;
 
 import com.cathay.coindesk.model.CoindeskRecord;
-import com.cathay.coindesk.respository.CoindeskRecordRepository;
+import com.cathay.coindesk.model.Currency;
+import com.cathay.coindesk.respository.CurrencyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,33 +14,30 @@ import java.util.Optional;
 public class CurrencyService {
 
     @Autowired
-    private CoindeskRecordRepository coindeskRecordRepository;
+    private CurrencyRepository currencyRepository;
 
-    public List<CoindeskRecord> getAllRecords() {
-        return coindeskRecordRepository.findAll();
+    public List<Currency> getAllRecords() {
+        return currencyRepository.findAll();
     }
 
-    public Optional<CoindeskRecord> getRecordById(Long id) {
-        return coindeskRecordRepository.findById(id);
+    public Optional<Currency> getRecordByCode(String code) {
+        return currencyRepository.findByCode(code);
     }
 
-    public CoindeskRecord createRecord(CoindeskRecord record) {
-        return coindeskRecordRepository.save(record);
+    public Currency createRecord(Currency record) {
+        return currencyRepository.save(record);
     }
 
-    public CoindeskRecord updateRecord(Long id, CoindeskRecord updated) {
-        return coindeskRecordRepository.findById(id).map(record -> {
+    public Currency updateRecord(String code, Currency updated) {
+        return currencyRepository.findByCode(code).map(record -> {
             record.setCode(updated.getCode());
-            record.setSymbol(updated.getSymbol());
-            record.setRate(updated.getRate());
-            record.setRateFloat(updated.getRateFloat());
-            record.setDescription(updated.getDescription());
-            record.setUpdateTime(updated.getUpdateTime());
-            return coindeskRecordRepository.save(record);
-        }).orElseThrow(() -> new RuntimeException("Record not found: " + id));
+            record.setName(updated.getName());
+            return currencyRepository.save(record);
+        }).orElseThrow(() -> new RuntimeException("Record not found: " + code));
     }
 
-    public void deleteRecord(Long id) {
-        coindeskRecordRepository.deleteById(id);
+    @Transactional
+    public void deleteRecord(String code) {
+        currencyRepository.deleteByCode(code);
     }
 }
